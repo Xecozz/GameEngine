@@ -1,13 +1,21 @@
-﻿// See https://aka.ms/new-console-template for more information
-using System;
+﻿using System;
+using System.Numerics;
+using System.Text;
+using OpenTK.Graphics.OpenGL;
+using OpenTK.Windowing.Common;
+using OpenTK.Windowing.Desktop;
+using OpenTK.Windowing.GraphicsLibraryFramework;
 
-namespace GameEngine // Note: actual namespace depends on the project name.
+namespace GameEngine;
+
+internal static class Program
 {
-    internal class Program
+    private static void Main(string[] args)
     {
-        static void Main(string[] args)
+        using (var game = new Window(800, 600, "Xecozz Game Engine")) //create game window
         {
-            Console.WriteLine("Hello World!");
+            game.VSync = VSyncMode.Adaptive; //set vsync mode 60fps
+            game.Run(); //run game
         }
     }
 }
