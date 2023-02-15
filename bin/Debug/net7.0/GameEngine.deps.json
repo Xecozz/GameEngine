@@ -9,12 +9,13 @@
       "GameEngine/1.0.0": {
         "dependencies": {
           "OpenTK": "4.7.5",
-          "OpenTK.GLControl": "3.3.3"
+          "SixLabors.ImageSharp": "2.1.3"
         },
         "runtime": {
           "GameEngine.dll": {}
         }
       },
+      "Microsoft.NETCore.Platforms/5.0.0": {},
       "OpenTK/4.7.5": {
         "dependencies": {
           "OpenTK.Compute": "4.7.5",
@@ -41,17 +42,6 @@
           "lib/netstandard2.1/OpenTK.Core.dll": {
             "assemblyVersion": "4.0.0.0",
             "fileVersion": "4.0.0.0"
-          }
-        }
-      },
-      "OpenTK.GLControl/3.3.3": {
-        "dependencies": {
-          "OpenTK": "4.7.5"
-        },
-        "runtime": {
-          "lib/net20/OpenTK.GLControl.dll": {
-            "assemblyVersion": "3.3.3.0",
-            "fileVersion": "3.3.3.0"
           }
         }
       },
@@ -165,7 +155,24 @@
           }
         }
       },
-      "System.Runtime.CompilerServices.Unsafe/5.0.0": {}
+      "SixLabors.ImageSharp/2.1.3": {
+        "dependencies": {
+          "System.Runtime.CompilerServices.Unsafe": "5.0.0",
+          "System.Text.Encoding.CodePages": "5.0.0"
+        },
+        "runtime": {
+          "lib/netcoreapp3.1/SixLabors.ImageSharp.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.1.3.0"
+          }
+        }
+      },
+      "System.Runtime.CompilerServices.Unsafe/5.0.0": {},
+      "System.Text.Encoding.CodePages/5.0.0": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "5.0.0"
+        }
+      }
     }
   },
   "libraries": {
@@ -173,6 +180,13 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "Microsoft.NETCore.Platforms/5.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VyPlqzH2wavqquTcYpkIIAQ6WdenuKoFN0BdYBbCWsclXacSOHNQn66Gt4z5NBqEYW0FAPm5rlvki9ZiCij5xQ==",
+      "path": "microsoft.netcore.platforms/5.0.0",
+      "hashPath": "microsoft.netcore.platforms.5.0.0.nupkg.sha512"
     },
     "OpenTK/4.7.5": {
       "type": "package",
@@ -194,13 +208,6 @@
       "sha512": "sha512-qRnNUImMQexp0dezp70XkD/DV5lOpDXou+wzYM79u1F4c986hmIK5SyM5gRlVZBPYdSLv1lhSPpEPIcJrWGKRg==",
       "path": "opentk.core/4.7.5",
       "hashPath": "opentk.core.4.7.5.nupkg.sha512"
-    },
-    "OpenTK.GLControl/3.3.3": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-OJKQN4s7tCzdDUoLmrEEwAzywlhIu/vmLO+qhUG4FAUKwaxNqyGYbdLgzgH4RtNzP6Qs8ZDx0RxNHXyn/DPgUA==",
-      "path": "opentk.glcontrol/3.3.3",
-      "hashPath": "opentk.glcontrol.3.3.3.nupkg.sha512"
     },
     "OpenTK.Graphics/4.7.5": {
       "type": "package",
@@ -258,12 +265,26 @@
       "path": "opentk.windowing.graphicslibraryframework/4.7.5",
       "hashPath": "opentk.windowing.graphicslibraryframework.4.7.5.nupkg.sha512"
     },
+    "SixLabors.ImageSharp/2.1.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-8yonNRWX3vUE9k29ta0Hbfa0AEc0hbDjSH/nZ3vOTJEXmY6hLnGsjDKoz96Z+AgOsrdkAu6PdL/Ebaf70aitzw==",
+      "path": "sixlabors.imagesharp/2.1.3",
+      "hashPath": "sixlabors.imagesharp.2.1.3.nupkg.sha512"
+    },
     "System.Runtime.CompilerServices.Unsafe/5.0.0": {
       "type": "package",
       "serviceable": true,
       "sha512": "sha512-ZD9TMpsmYJLrxbbmdvhwt9YEgG5WntEnZ/d1eH8JBX9LBp+Ju8BSBhUGbZMNVHHomWo2KVImJhTDl2hIgw/6MA==",
       "path": "system.runtime.compilerservices.unsafe/5.0.0",
       "hashPath": "system.runtime.compilerservices.unsafe.5.0.0.nupkg.sha512"
+    },
+    "System.Text.Encoding.CodePages/5.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-NyscU59xX6Uo91qvhOs2Ccho3AR2TnZPomo1Z0K6YpyztBPM/A5VbkzOO19sy3A3i1TtEnTxA7bCe3Us+r5MWg==",
+      "path": "system.text.encoding.codepages/5.0.0",
+      "hashPath": "system.text.encoding.codepages.5.0.0.nupkg.sha512"
     }
   }
 }

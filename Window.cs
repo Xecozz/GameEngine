@@ -1,66 +1,118 @@
-﻿namespace GameEngine;
-
+﻿using System.Diagnostics;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Graphics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
+namespace GameEngine;
+
 public class Window : GameWindow
 {
-    public Window(int width, int height, string title) : base(GameWindowSettings.Default,
-        new NativeWindowSettings() { Size = (width, height), Title = title })
+    public Window(int width, int height, string title) : base(new GameWindowSettings
     {
-    } //create constructor
-
+        UpdateFrequency = 60,
+        RenderFrequency = 60
+    }, new NativeWindowSettings
+    {
+        Size = (width, height),
+        Title = title,
+        API = ContextAPI.OpenGL,
+        APIVersion = new Version(4, 6),
+        AutoLoadBindings = true,
+        Flags = ContextFlags.Default
+    })
+    {
+    }
 
     //create vertex array
     private readonly float[] _vertices =
     {
-        -0.5f, -0.5f, 0.0f, //Bottom-left vertex
-        0.5f, -0.5f, 0.0f, //Bottom-right vertex
-        0.0f, 0.5f, 0.0f //Top vertex
+        // positions        // colors
+        0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
+        0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f // top 
     };
+
+    //private readonly uint[] _indices = {  // note that we start from 0!
+    //    0, 1, 3,   // first triangle
+    //    1, 2, 3    // second triangle
+    //};
+
+    private Stopwatch _timer;
 
     //create buffer
     private int _VertexBufferObject;
+    //private int _ElementBufferObject;
 
     //create vertex array object
     private int _VertexArrayObject;
 
-    private Shader _shader; //create shader
 
+    //create shader
+    private Shader _shader;
 
-    //when update frame 60/sec
-    protected override void OnUpdateFrame(FrameEventArgs e)
+    // shader path
+    private const string _ShaderPath = "../../../Asset/";
+
+    // when load window
+    protected override void OnLoad()
     {
-        base.OnUpdateFrame(e); //update frame
+        base.OnLoad();
 
-        if (KeyboardState.IsKeyDown(Keys.Escape)) //if escape key is pressed
-        {
-            Close(); //close window
-        }
+        GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+
+        _VertexBufferObject = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _VertexBufferObject);
+        GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices,
+            BufferUsageHint.StreamCopy);
+
+        _VertexArrayObject = GL.GenVertexArray();
+        GL.BindVertexArray(_VertexArrayObject);
+
+        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
+        GL.EnableVertexAttribArray(0);
+
+        GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
+        GL.EnableVertexAttribArray(1);
+
+        // For create rectangle with EBO
+        //_ElementBufferObject = GL.GenBuffer();
+        //GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ElementBufferObject);
+        // We also upload data to the EBO the same way as we did with VBOs.
+        //GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.StaticDraw);
+        // The EBO has now been properly setup. Go to the Render function to see how we draw our rectangle now!
+        
+
+        _shader = new Shader(_ShaderPath + "shader_vert.glsl", _ShaderPath + "shader_frag.glsl"); //create shader
+        _shader.Use();
+
+        // We start the stopwatch here as this method is only called once.
+        _timer = new Stopwatch();
+        _timer.Start();
     }
 
-    // render frame événements que le système peut gérer
+    // render frame events
     protected override void OnRenderFrame(FrameEventArgs e)
     {
         base.OnRenderFrame(e);
 
-        GL.Clear(ClearBufferMask.ColorBufferBit);
+        GL.Clear(ClearBufferMask.ColorBufferBit); //clear screen
 
-        _shader.Use();
+        _shader.Use(); // re-use shader
 
-        // Bind the VAO
+        // update the uniform color
+        double timeValue = _timer.Elapsed.TotalSeconds;
+        float greenValue = (float)Math.Sin(timeValue) / 2.0f + 0.5f;
+        int vertexColorLocation = GL.GetUniformLocation(_shader.Handle, "ourColor");
+        GL.Uniform4(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+
+        // Bind the VAO so OpenGL knows to use it
         GL.BindVertexArray(_VertexArrayObject);
 
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
-        
+        GL.DrawArrays(PrimitiveType.Triangles, 0, 3); //draw triangle
 
-        // OpenTK windows are what's known as "double-buffered". In essence, the window manages two buffers.
-        // One is rendered to while the other is currently displayed by the window.
-        // This avoids screen tearing, a visual artifact that can happen if the buffer is modified while being displayed.
-        // After drawing, call this function to swap the buffers. If you don't, it won't display what you've rendered.
+        //draw behind the screen so swap Buffers
         SwapBuffers();
     }
 
@@ -76,42 +128,11 @@ public class Window : GameWindow
         GL.DeleteVertexArray(_VertexArrayObject);
 
         GL.DeleteProgram(_shader.Handle);
-        
+
         _shader.Dispose();
 
         base.OnUnload();
     }
-
-
-    // when load window
-    protected override void OnLoad()
-    {
-        base.OnLoad();
-
-
-        GL.ClearColor(0.2f, 0.3f, 0.6f, 1.0f); //set background color
-
-        _VertexBufferObject = GL.GenBuffer(); //generate buffer
-        
-        
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _VertexBufferObject); //bind buffer
-
-        GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices,
-            BufferUsageHint.StaticDraw); //copy data to buffer
-        
-        _VertexArrayObject = GL.GenVertexArray(); //generate vertex array object
-        GL.BindVertexArray(_VertexArrayObject); //bind vertex array object
-
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float),
-            0); //set vertex attribute pointer
-        GL.EnableVertexAttribArray(0);
-        
-
-
-        _shader = new Shader("shader.vert", "shader.frag"); //create shader
-        _shader.Use();
-    }
-
 
     // rezise window
     protected override void OnResize(ResizeEventArgs e)
@@ -119,5 +140,16 @@ public class Window : GameWindow
         base.OnResize(e);
 
         GL.Viewport(0, 0, e.Width, e.Height); //set viewport
+    }
+
+    //when update frame 60/sec
+    protected override void OnUpdateFrame(FrameEventArgs e)
+    {
+        base.OnUpdateFrame(e); //update frame
+
+        if (KeyboardState.IsKeyDown(Keys.Escape)) //if escape key is pressed
+        {
+            Close(); //close window
+        }
     }
 }
