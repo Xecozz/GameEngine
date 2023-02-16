@@ -5,9 +5,9 @@ using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace GameEngine;
 
-internal sealed class Shader
+internal class Shader
 {
-    public int Handle;
+    public readonly int Handle;
 
     public Shader(string vertexPath, string fragmentPath)
     {
@@ -50,6 +50,11 @@ internal sealed class Shader
     public void Use() //nous utilisons notre programme
     {
         GL.UseProgram(Handle);
+    }
+    
+    public int GetAttribLocation(string attribName)
+    {
+        return GL.GetAttribLocation(Handle, attribName);
     }
     
     

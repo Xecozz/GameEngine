@@ -28,4 +28,4 @@ D:\DEV\LANG\CS\c#\GameEngine\GameEngine\bin\Debug\net7.0\runtimes\osx-arm64\nati
 D:\DEV\LANG\CS\c#\GameEngine\GameEngine\bin\Debug\net7.0\runtimes\osx-x64\native\libglfw.3.dylib
 D:\DEV\LANG\CS\c#\GameEngine\GameEngine\bin\Debug\net7.0\runtimes\win-x64\native\glfw3.dll
 D:\DEV\LANG\CS\c#\GameEngine\GameEngine\bin\Debug\net7.0\runtimes\win-x86\native\glfw3.dll
-D:\DEV\LANG\CS\c#\GameEngine\GameEngine\bin\Debug\net7.0\SixLabors.ImageSharp.dll
+D:\DEV\LANG\CS\c#\GameEngine\GameEngine\bin\Debug\net7.0\StbImageSharp.dll

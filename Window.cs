@@ -2,7 +2,6 @@
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
-using OpenTK.Graphics;
 using OpenTK.Windowing.GraphicsLibraryFramework;
 
 namespace GameEngine;
@@ -28,32 +27,37 @@ public class Window : GameWindow
     //create vertex array
     private readonly float[] _vertices =
     {
-        // positions        // colors
-        0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
-        0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f // top 
+        //Position          Texture coordinates
+        0.5f, 0.5f, 0.0f, 1.0f, 1.0f, // top right
+        0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+        -0.5f, 0.5f, 0.0f, 0.0f, 1.0f // top left
     };
 
-    //private readonly uint[] _indices = {  // note that we start from 0!
-    //    0, 1, 3,   // first triangle
-    //    1, 2, 3    // second triangle
-    //};
-
-    private Stopwatch _timer;
-
+    private readonly uint[] _indices =
+    {
+        0, 1, 3,
+        1, 2, 3
+    };
+    
     //create buffer
-    private int _VertexBufferObject;
-    //private int _ElementBufferObject;
+    private int _vertexBufferObject;
+    private int _elementBufferObject;
 
     //create vertex array object
-    private int _VertexArrayObject;
-
+    private int _vertexArrayObject;
 
     //create shader
     private Shader _shader;
 
+    //create texture
+    private Texture _texture;
+
     // shader path
-    private const string _ShaderPath = "../../../Asset/";
+    private const string ShaderPath = "../../../Asset/Shaders/";
+
+    // texture path
+    private const string TexturePath = "../../../Asset/Textures/";
 
     // when load window
     protected override void OnLoad()
@@ -62,34 +66,34 @@ public class Window : GameWindow
 
         GL.ClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 
-        _VertexBufferObject = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _VertexBufferObject);
+        _vertexArrayObject = GL.GenVertexArray();
+        GL.BindVertexArray(_vertexArrayObject);
+
+        _vertexBufferObject = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
         GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices,
-            BufferUsageHint.StreamCopy);
+            BufferUsageHint.StaticDraw);
 
-        _VertexArrayObject = GL.GenVertexArray();
-        GL.BindVertexArray(_VertexArrayObject);
+        _elementBufferObject = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ElementArrayBuffer, _elementBufferObject);
+        GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices,
+            BufferUsageHint.StaticDraw);
 
-        GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
-        GL.EnableVertexAttribArray(0);
-
-        GL.VertexAttribPointer(1, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 3 * sizeof(float));
-        GL.EnableVertexAttribArray(1);
-
-        // For create rectangle with EBO
-        //_ElementBufferObject = GL.GenBuffer();
-        //GL.BindBuffer(BufferTarget.ElementArrayBuffer, _ElementBufferObject);
-        // We also upload data to the EBO the same way as we did with VBOs.
-        //GL.BufferData(BufferTarget.ElementArrayBuffer, _indices.Length * sizeof(uint), _indices, BufferUsageHint.StaticDraw);
-        // The EBO has now been properly setup. Go to the Render function to see how we draw our rectangle now!
-        
-
-        _shader = new Shader(_ShaderPath + "shader_vert.glsl", _ShaderPath + "shader_frag.glsl"); //create shader
+        // The shaders have been modified to include the texture coordinates, check them out after finishing the OnLoad function.
+        _shader = new Shader(ShaderPath + "shader_vert.glsl", ShaderPath + "shader_frag.glsl");
         _shader.Use();
+        
+        var vertexLocation = _shader.GetAttribLocation("aPosition");
+        GL.EnableVertexAttribArray(vertexLocation);
+        GL.VertexAttribPointer(vertexLocation, 3, VertexAttribPointerType.Float, false, 5 * sizeof(float), 0);
+        
+        var texCoordLocation = _shader.GetAttribLocation("aTexCoord");
+        GL.EnableVertexAttribArray(texCoordLocation);
+        GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 5 * sizeof(float),
+            3 * sizeof(float));
 
-        // We start the stopwatch here as this method is only called once.
-        _timer = new Stopwatch();
-        _timer.Start();
+        _texture = new Texture(TexturePath + "wall.jpg");
+        _texture.Use(TextureUnit.Texture0);
     }
 
     // render frame events
@@ -97,20 +101,14 @@ public class Window : GameWindow
     {
         base.OnRenderFrame(e);
 
-        GL.Clear(ClearBufferMask.ColorBufferBit); //clear screen
+        GL.Clear(ClearBufferMask.ColorBufferBit);
 
-        _shader.Use(); // re-use shader
+        GL.BindVertexArray(_vertexArrayObject);
 
-        // update the uniform color
-        double timeValue = _timer.Elapsed.TotalSeconds;
-        float greenValue = (float)Math.Sin(timeValue) / 2.0f + 0.5f;
-        int vertexColorLocation = GL.GetUniformLocation(_shader.Handle, "ourColor");
-        GL.Uniform4(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
+        _texture.Use(TextureUnit.Texture0);
+        _shader.Use();
 
-        // Bind the VAO so OpenGL knows to use it
-        GL.BindVertexArray(_VertexArrayObject);
-
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 3); //draw triangle
+        GL.DrawElements(PrimitiveType.Triangles, _indices.Length, DrawElementsType.UnsignedInt, 0);
 
         //draw behind the screen so swap Buffers
         SwapBuffers();
@@ -124,8 +122,8 @@ public class Window : GameWindow
         GL.UseProgram(0);
 
         // Delete all the resources.
-        GL.DeleteBuffer(_VertexBufferObject);
-        GL.DeleteVertexArray(_VertexArrayObject);
+        GL.DeleteBuffer(_vertexBufferObject);
+        GL.DeleteVertexArray(_vertexArrayObject);
 
         GL.DeleteProgram(_shader.Handle);
 
