@@ -11,16 +11,14 @@ public class Window : GameWindow
 {
     public Window(int width, int height, string title) : base(new GameWindowSettings
     {
-        UpdateFrequency = 60,
-        RenderFrequency = 60
+        UpdateFrequency = 200,
+        RenderFrequency = 200
     }, new NativeWindowSettings
     {
         Size = (width, height),
         Title = title,
         API = ContextAPI.OpenGL,
-        APIVersion = new Version(4, 6),
-        AutoLoadBindings = true,
-        Flags = ContextFlags.Default,
+        APIVersion = new Version(4, 6)
     })
     {
     }
@@ -97,11 +95,16 @@ public class Window : GameWindow
     // Then, we create two matrices to hold our view and projection. They're initialized at the bottom of OnLoad.
     // The view matrix is what you might consider the "camera". It represents the current viewport in the window.
     private Matrix4 _view;
+    
 
-    // This represents how the vertices will be projected. It's hard to explain through comments,
-    // so check out the web version for a good demonstration of what this does.
-    private Matrix4 _projection;
+    // We need an instance of the new camera class so it can manage the view and projection matrix code.
+    // We also need a boolean set to true to detect whether or not the mouse has been moved for the first time.
+    // Finally, we add the last position of the mouse so we can calculate the mouse offset easily.
+    private Camera _camera;
 
+    private bool _firstMove = true;
+
+    private Vector2 _lastPos;
 
     // when load window
     protected override void OnLoad()
@@ -148,7 +151,7 @@ public class Window : GameWindow
 
         _shader.SetInt("texture0", 0);
         _shader.SetInt("texture1", 1);
-        
+
         // if transform don't change then set it in OnLoad
         Matrix4 rotation = Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(90.0f)); // rotate 90 degrees
         Matrix4 scale = Matrix4.CreateScale(0.5f, 0.5f, 0.5f); // scale 0.5f
@@ -158,14 +161,18 @@ public class Window : GameWindow
         // A bit farther away from us. (distance from camera to object)
         _view = Matrix4.CreateTranslation(0.0f, 0.0f, -2.0f);
 
-        _projection =
-            Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f,
-                100.0f);
+        // We initialize the camera so that it is 3 units back from where the rectangle is.
+        // We also give it the proper aspect ratio.
+        _camera = new Camera(Vector3.UnitZ * 3, Size.X / (float)Size.Y);
+
+        // We make the mouse cursor invisible and captured so we can have proper FPS-camera movement.
+        CursorState = CursorState.Grabbed;
     }
 
     // render frame events
     protected override void OnRenderFrame(FrameEventArgs e)
     {
+        base.OnRenderFrame(e);
         
         //clearing the color buffer, we can clear the depth buffer by specifying the ClearBufferMask.DepthBufferBit bit in the glClear function:
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
@@ -186,13 +193,11 @@ public class Window : GameWindow
 
         // We set the matrices in the shader.
         _shader.SetMatrix4("model", model);
-        _shader.SetMatrix4("view", _view);
-        _shader.SetMatrix4("projection", _projection);
+        _shader.SetMatrix4("view", _camera.GetViewMatrix());
+        _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
 
         //draw behind the screen so swap Buffers
         SwapBuffers();
-
-        base.OnRenderFrame(e);
     }
 
     protected override void OnUnload()
@@ -225,20 +230,77 @@ public class Window : GameWindow
     protected override void OnUpdateFrame(FrameEventArgs e)
     {
         base.OnUpdateFrame(e);
-        
+
 
         if (!IsFocused) // Check to see if the window is focused
         {
             return;
         }
 
-        var input = KeyboardState;
-
-        if (input.IsKeyDown(Keys.Escape))
+        if (KeyboardState.IsKeyDown(Keys.Escape))
         {
             Close();
         }
 
+        const float cameraSpeed = 1.5f;
+        const float sensitivity = 0.2f;
+
+        if (KeyboardState.IsKeyDown(Keys.W))
+        {
+            _camera.Position += _camera.Front * cameraSpeed * (float)e.Time; // Forward
+        }
+
+        if (KeyboardState.IsKeyDown(Keys.S))
+        {
+            _camera.Position -= _camera.Front * cameraSpeed * (float)e.Time; // Backwards
+        }
+
+        if (KeyboardState.IsKeyDown(Keys.A))
+        {
+            _camera.Position -= _camera.Right * cameraSpeed * (float)e.Time; // Left
+        }
+
+        if (KeyboardState.IsKeyDown(Keys.D))
+        {
+            _camera.Position += _camera.Right * cameraSpeed * (float)e.Time; // Right
+        }
+
+        if (KeyboardState.IsKeyDown(Keys.Space))
+        {
+            _camera.Position += _camera.Up * cameraSpeed * (float)e.Time; // Up
+        }
+
+        if (KeyboardState.IsKeyDown(Keys.LeftShift))
+        {
+            _camera.Position -= _camera.Up * cameraSpeed * (float)e.Time; // Down
+        }
+
+        // Get the mouse state
+
+        if (_firstMove) // This bool variable is initially set to true.
+        {
+            _lastPos = new Vector2(MouseState.X, MouseState.Y);
+            _firstMove = false;
+        }
+        else
+        {
+            // Calculate the offset of the mouse position
+            var deltaX = MouseState.X - _lastPos.X;
+            var deltaY = MouseState.Y - _lastPos.Y;
+            _lastPos = new Vector2(MouseState.X, MouseState.Y);
+
+            // Apply the camera pitch and yaw (we clamp the pitch in the camera class)
+            _camera.Yaw += deltaX * sensitivity;
+            _camera.Pitch -= deltaY * sensitivity; // Reversed since y-coordinates range from bottom to top
+        }
     }
-    
+
+    // In the mouse wheel function, we manage all the zooming of the camera.
+    // This is simply done by changing the FOV of the camera.
+    protected override void OnMouseWheel(MouseWheelEventArgs e)
+    {
+        base.OnMouseWheel(e);
+
+        _camera.Fov -= e.OffsetY;
+    }
 }
