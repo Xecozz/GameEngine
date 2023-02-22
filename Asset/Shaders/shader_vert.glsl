@@ -1,5 +1,4 @@
 ﻿#version 410 core
-
 layout(location = 0) in vec3 aPosition;
 
 // We add another input variable for the texture coordinates.
@@ -11,6 +10,11 @@ layout(location = 1) in vec2 aTexCoord;
 
 out vec2 texCoord;
 
+uniform mat4 transform;
+uniform mat4 model;
+uniform mat4 view;
+uniform mat4 projection;
+
 void main(void)
 {
     // Then, we further the input texture coordinate to the output one.
@@ -18,5 +22,9 @@ void main(void)
 
     texCoord = aTexCoord;
 
-    gl_Position = vec4(aPosition, 1.0);
+    // Then all you have to do is multiply the vertices by the transformation matrix, and you'll see your transformation in the scene!
+    gl_Position = vec4(aPosition, 1.0) * transform * model * view * projection;
 }
+
+
+

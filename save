@@ -1,15 +1,4 @@
-﻿using System.Diagnostics;
-using OpenTK.Graphics.OpenGL4;
-using OpenTK.Mathematics;
-using OpenTK.Windowing.Common;
-using OpenTK.Windowing.Desktop;
-using OpenTK.Windowing.GraphicsLibraryFramework;
-
-namespace GameEngine;
-
-public class Window : GameWindow
-{
-    public Window(int width, int height, string title) : base(new GameWindowSettings
+public Window(int width, int height, string title) : base(new GameWindowSettings
     {
         UpdateFrequency = 60,
         RenderFrequency = 60
@@ -158,6 +147,7 @@ public class Window : GameWindow
         // A bit farther away from us. (distance from camera to object)
         _view = Matrix4.CreateTranslation(0.0f, 0.0f, -2.0f);
 
+        // add perspective
         _projection =
             Matrix4.CreatePerspectiveFieldOfView(MathHelper.DegreesToRadians(45f), Size.X / (float)Size.Y, 0.1f,
                 100.0f);
@@ -241,4 +231,3 @@ public class Window : GameWindow
 
     }
     
-}

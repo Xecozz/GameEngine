@@ -8,10 +8,12 @@ in vec2 texCoord;
 // By default, the unit is 0, so no code-related setup is actually needed.
 // Multiple samplers will be demonstrated in section 1.5.
 uniform sampler2D texture0;
+uniform sampler2D texture1;
 
 void main()
 {
     // To use a texture, you call the texture() function.
     // It takes two parameters: the sampler to use, and a vec2, used as texture coordinates.
-    outputColor = texture(texture0, texCoord);
+    outputColor = mix(texture(texture0, texCoord), texture(texture1, texCoord), 0.2);
+    
 }
